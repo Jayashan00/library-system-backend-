@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # This is required for a more accurate SonarCloud analysis
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -44,13 +44,29 @@ jobs:
       - name: Build, Test, and Generate Coverage Report
         run: mvn -B verify --file pom.xml
 
-      - name: Analyze with SonarCloud
+      - name: Analyze on Main Branch (Push Event)
+        # This step only runs for pushes to the main branch
+        if: github.event_name == 'push'
         run: >
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-          -Dsonar.projectKey=Jayashan00_library-system-backend-
-          -Dsonar.pullrequest.branch=${{ github.head_ref }}
-          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-          -Dsonar.pullrequest.base=${{ github.base_ref }}
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.projectKey=Jayashan00_library-system-backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Analyze Pull Request
+        # This step only runs for pull requests
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # Safely pass user-controlled data as environment variables
+          PULL_REQUEST_BRANCH: ${{ github.head_ref }}
+          PULL_REQUEST_KEY: ${{ github.event.pull_request.number }}
+          PULL_REQUEST_BASE: ${{ github.base_ref }}
+        run: >
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.projectKey=Jayashan00_library-system-backend-
+          -Dsonar.pullrequest.branch=$PULL_REQUEST_BRANCH
+          -Dsonar.pullrequest.key=$PULL_REQUEST_KEY
+          -Dsonar.pullrequest.base=$PULL_REQUEST_BASE
