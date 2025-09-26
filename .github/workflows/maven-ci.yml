@@ -49,7 +49,7 @@ jobs:
         if: github.event_name == 'push'
         run: >
           mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-          -Dsonar.projectKey=Jayashan00_library-system-backend
+          -Dsonar.projectKey=Jayashan00_library-system-backend-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
